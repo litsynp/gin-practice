@@ -1,7 +1,7 @@
 package users
 
 import (
-	"gin-practice/src/utils"
+	"gin-practice/src/db"
 	"testing"
 )
 
@@ -11,7 +11,7 @@ func TestCreate(t *testing.T) {
 
 		user := dummyUser()
 
-		if err := UserRepository.Create(db.DB, &user); err != nil {
+		if err := UserRepository.Create(database, &user); err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
@@ -26,12 +26,12 @@ func TestCreate(t *testing.T) {
 
 		user := dummyUser()
 
-		if err := UserRepository.Create(db.DB, &user); err != nil {
+		if err := UserRepository.Create(database, &user); err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
 		user2 := dummyUser()
-		err := UserRepository.Create(db.DB, &user2)
+		err := UserRepository.Create(database, &user2)
 
 		if err == nil {
 			t.Errorf("Expected error to be returned")
@@ -45,11 +45,11 @@ func TestFindUserById(t *testing.T) {
 
 		existing := dummyUser()
 
-		if err := UserRepository.Create(db.DB, &existing); err != nil {
+		if err := UserRepository.Create(database, &existing); err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
-		user, err := UserRepository.FindById(db.DB, existing.ID)
+		user, err := UserRepository.FindById(database, existing.ID)
 
 		if err != nil {
 			t.Errorf("Error finding user: %v", err)
@@ -63,7 +63,7 @@ func TestFindUserById(t *testing.T) {
 	t.Run("should return an error if user does not exist", func(t *testing.T) {
 		defer setUpTest()()
 
-		_, err := UserRepository.FindById(db.DB, 1)
+		_, err := UserRepository.FindById(database, 1)
 
 		if err == nil {
 			t.Errorf("Expected error to be returned")
@@ -77,7 +77,7 @@ func TestUpdate(t *testing.T) {
 
 		existing := dummyUser()
 
-		if err := UserRepository.Create(db.DB, &existing); err != nil {
+		if err := UserRepository.Create(database, &existing); err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
@@ -86,7 +86,7 @@ func TestUpdate(t *testing.T) {
 		{
 			updated.Email = newEmail
 		}
-		err := UserRepository.Update(db.DB, &updated)
+		err := UserRepository.Update(database, &updated)
 
 		if err != nil {
 			t.Errorf("Error finding user: %v", err)
@@ -104,17 +104,17 @@ func TestDeleteById(t *testing.T) {
 
 		existing := dummyUser()
 
-		if err := UserRepository.Create(db.DB, &existing); err != nil {
+		if err := UserRepository.Create(database, &existing); err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
-		err := UserRepository.DeleteById(db.DB, existing.ID)
+		err := UserRepository.DeleteById(database, existing.ID)
 
 		if err != nil {
 			t.Errorf("Error deleting user: %v", err)
 		}
 
-		_, err = UserRepository.FindById(db.DB, existing.ID)
+		_, err = UserRepository.FindById(database, existing.ID)
 
 		if err == nil {
 			t.Errorf("Expected error to be returned")
@@ -122,14 +122,13 @@ func TestDeleteById(t *testing.T) {
 	})
 }
 
-var db = &utils.DB{}
+var database *db.Database
 
 func setUpTest() func() {
-	db = utils.InitDb()
-	UserRepository.Migrate(db.DB)
+	database = db.GetDb()
 
 	return func() {
-		UserRepository.DropDatabase(db.DB)
+		UserRepository.DropDatabase(database)
 		db.CloseDb()
 	}
 }

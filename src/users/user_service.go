@@ -1,6 +1,8 @@
 package users
 
-import "database/sql"
+import (
+	"gin-practice/src/db"
+)
 
 type IUserService interface {
 	CreateUser(user User) (User, error)
@@ -11,37 +13,33 @@ type TUserService struct{}
 var UserService *TUserService
 
 func (s *TUserService) CreateUser(
-	db *sql.DB,
 	user User,
-	createUser func(db *sql.DB, user *User) error,
+	createUser func(db *db.Database, user *User) error,
 ) (User, error) {
-	err := createUser(db, &user)
+	err := createUser(db.GetDb(), &user)
 	return user, err
 }
 
 func (s *TUserService) FindUserById(
-	db *sql.DB,
 	id int64,
-	findUserById func(db *sql.DB, id int64) (User, error),
+	findUserById func(db *db.Database, id int64) (User, error),
 ) (User, error) {
-	user, err := findUserById(db, id)
+	user, err := findUserById(db.GetDb(), id)
 	return user, err
 }
 
 func (s *TUserService) UpdateUser(
-	db *sql.DB,
 	user User,
-	updateUser func(db *sql.DB, user *User) error,
+	updateUser func(db *db.Database, user *User) error,
 ) (User, error) {
-	err := updateUser(db, &user)
+	err := updateUser(db.GetDb(), &user)
 	return user, err
 }
 
 func (s *TUserService) DeleteUserById(
-	db *sql.DB,
 	id int64,
-	deleteUserById func(db *sql.DB, id int64) error,
+	deleteUserById func(db *db.Database, id int64) error,
 ) error {
-	err := deleteUserById(db, id)
+	err := deleteUserById(db.GetDb(), id)
 	return err
 }

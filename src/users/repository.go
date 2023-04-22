@@ -1,42 +1,27 @@
 package users
 
 import (
-	"database/sql"
+	"gin-practice/src/db"
 )
 
 type IUserRepository interface {
-	Migrate(db *sql.DB) error
-	DropDatabase(db *sql.DB) error
-	Create(db *sql.DB, user *User) error
-	FindById(db *sql.DB, id int64) (User, error)
-	Update(db *sql.DB, user *User) error
-	DeleteById(db *sql.DB, id int64) error
+	DropDatabase(db *db.Database) error
+	Create(db *db.Database, user *User) error
+	FindById(db *db.Database, id int64) (User, error)
+	Update(db *db.Database, user *User) error
+	DeleteById(db *db.Database, id int64) error
 }
 
 type TUserRepository struct{}
 
 var UserRepository *TUserRepository
 
-func (r *TUserRepository) Migrate(db *sql.DB) error {
-	_, err := db.Exec(`
-	CREATE TABLE IF NOT EXISTS users (
-	    id SERIAL PRIMARY KEY,
-	    first_name VARCHAR(20),
-	    last_name VARCHAR(20),
-	    email TEXT NOT NULL UNIQUE,
-	    password VARCHAR(255)
- 	);
-	`)
-
-	return err
-}
-
-func (r *TUserRepository) DropDatabase(db *sql.DB) error {
+func (r *TUserRepository) DropDatabase(db *db.Database) error {
 	err := db.QueryRow("DROP TABLE users;").Scan()
 	return err
 }
 
-func (r *TUserRepository) Create(db *sql.DB, user *User) (err error) {
+func (r *TUserRepository) Create(db *db.Database, user *User) (err error) {
 	stmt, err := db.Prepare(`
 	INSERT INTO users(
         first_name, last_name, email, password
@@ -56,7 +41,7 @@ func (r *TUserRepository) Create(db *sql.DB, user *User) (err error) {
 	return
 }
 
-func (r *TUserRepository) FindById(db *sql.DB, id int64) (user User, err error) {
+func (r *TUserRepository) FindById(db *db.Database, id int64) (user User, err error) {
 	user = User{}
 
 	err = db.QueryRow(`
@@ -71,7 +56,7 @@ func (r *TUserRepository) FindById(db *sql.DB, id int64) (user User, err error) 
 	return
 }
 
-func (r *TUserRepository) Update(db *sql.DB, user *User) (err error) {
+func (r *TUserRepository) Update(db *db.Database, user *User) (err error) {
 	stmt, err := db.Prepare(`
 	UPDATE
 	    users
@@ -91,7 +76,7 @@ func (r *TUserRepository) Update(db *sql.DB, user *User) (err error) {
 	return
 }
 
-func (r *TUserRepository) DeleteById(db *sql.DB, id int64) (err error) {
+func (r *TUserRepository) DeleteById(db *db.Database, id int64) (err error) {
 	_, err = db.Exec(`
 	DELETE FROM
 	    users

@@ -1,23 +1,23 @@
 package main
 
 import (
-	"database/sql"
+	"gin-practice/src/db"
 	"gin-practice/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	db := utils.InitDb()
-	r := InitGinApp(db.DB)
+	db.GetDb()
+	r := InitGinApp()
 
 	r.Run(":" + utils.PORT)
 }
 
-func InitGinApp(db *sql.DB) *gin.Engine {
+func InitGinApp() *gin.Engine {
 	r := gin.Default()
 	r.Use(gin.Logger())
 
-	InitRouter(r, db)
+	InitRouter(r)
 
 	return r
 }
