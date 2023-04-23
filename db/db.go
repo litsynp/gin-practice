@@ -2,9 +2,9 @@ package db
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
+	"gin-practice/internal"
 
-	"gin-practice/src/utils"
+	_ "github.com/lib/pq"
 )
 
 type Database struct {
@@ -18,7 +18,7 @@ func GetDb() *Database {
 		return db
 	}
 
-	database, err := sql.Open("postgres", utils.DB_URL)
+	database, err := sql.Open("postgres", internal.DB_URL)
 	if err != nil {
 		panic(err)
 	}

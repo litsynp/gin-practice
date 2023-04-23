@@ -1,17 +1,17 @@
 package users
 
 import (
-	"gin-practice/src/db"
+	"gin-practice/db"
 	"testing"
 )
 
-func TestCreate(t *testing.T) {
+func TestUserService_CreateUser(t *testing.T) {
 	t.Run("should create a new user", func(t *testing.T) {
 		defer setUpTest()()
+		userService := NewUserService(NewUserRepository(db.GetDb()))
 
-		user := dummyUser()
-
-		if err := UserRepository.Create(database, &user); err != nil {
+		user, err := userService.CreateUser(dummyUser())
+		if err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
@@ -23,34 +23,31 @@ func TestCreate(t *testing.T) {
 
 	t.Run("should return an error if email is not unique", func(t *testing.T) {
 		defer setUpTest()()
+		userService := NewUserService(NewUserRepository(db.GetDb()))
 
-		user := dummyUser()
-
-		if err := UserRepository.Create(database, &user); err != nil {
+		_, err := userService.CreateUser(dummyUser())
+		if err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
-		user2 := dummyUser()
-		err := UserRepository.Create(database, &user2)
-
+		_, err = userService.CreateUser(dummyUser())
 		if err == nil {
 			t.Errorf("Expected error to be returned")
 		}
 	})
 }
 
-func TestFindUserById(t *testing.T) {
+func TestUserService_FindUserById(t *testing.T) {
 	t.Run("find user by ID", func(t *testing.T) {
 		defer setUpTest()()
+		userService := NewUserService(NewUserRepository(db.GetDb()))
 
-		existing := dummyUser()
-
-		if err := UserRepository.Create(database, &existing); err != nil {
+		existing, err := userService.CreateUser(dummyUser())
+		if err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
-		user, err := UserRepository.FindById(database, existing.ID)
-
+		user, err := userService.FindUserById(existing.ID)
 		if err != nil {
 			t.Errorf("Error finding user: %v", err)
 		}
@@ -62,22 +59,23 @@ func TestFindUserById(t *testing.T) {
 
 	t.Run("should return an error if user does not exist", func(t *testing.T) {
 		defer setUpTest()()
+		userService := NewUserService(NewUserRepository(db.GetDb()))
 
-		_, err := UserRepository.FindById(database, 1)
-
+		_, err := userService.FindUserById(1)
 		if err == nil {
 			t.Errorf("Expected error to be returned")
 		}
 	})
 }
 
-func TestUpdate(t *testing.T) {
+func TestUserService_UpdateUser(t *testing.T) {
 	t.Run("update user by ID", func(t *testing.T) {
 		defer setUpTest()()
+		userService := NewUserService(NewUserRepository(db.GetDb()))
 
 		existing := dummyUser()
 
-		if err := UserRepository.Create(database, &existing); err != nil {
+		if _, err := userService.CreateUser(existing); err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
@@ -86,7 +84,7 @@ func TestUpdate(t *testing.T) {
 		{
 			updated.Email = newEmail
 		}
-		err := UserRepository.Update(database, &updated)
+		updated, err := userService.UpdateUser(updated)
 
 		if err != nil {
 			t.Errorf("Error finding user: %v", err)
@@ -98,37 +96,32 @@ func TestUpdate(t *testing.T) {
 	})
 }
 
-func TestDeleteById(t *testing.T) {
+func TestUserService_DeleteUserById(t *testing.T) {
 	t.Run("delete user by ID", func(t *testing.T) {
 		defer setUpTest()()
+		userService := NewUserService(NewUserRepository(db.GetDb()))
 
 		existing := dummyUser()
-
-		if err := UserRepository.Create(database, &existing); err != nil {
+		if _, err := userService.CreateUser(existing); err != nil {
 			t.Errorf("Error creating user: %v", err)
 		}
 
-		err := UserRepository.DeleteById(database, existing.ID)
-
+		err := userService.DeleteUserById(existing.ID)
 		if err != nil {
 			t.Errorf("Error deleting user: %v", err)
 		}
 
-		_, err = UserRepository.FindById(database, existing.ID)
-
+		_, err = userService.FindUserById(existing.ID)
 		if err == nil {
 			t.Errorf("Expected error to be returned")
 		}
 	})
 }
 
-var database *db.Database
-
 func setUpTest() func() {
-	database = db.GetDb()
-
 	return func() {
-		UserRepository.DropDatabase(database)
+		userRepository := NewUserRepository(db.GetDb())
+		userRepository.DropDatabase()
 		db.CloseDb()
 	}
 }

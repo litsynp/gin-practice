@@ -6,7 +6,15 @@ import (
 	"strconv"
 )
 
-func CreateUserAction(c *gin.Context) {
+type UserController struct {
+	userService UserService
+}
+
+func NewUserController(userService UserService) *UserController {
+	return &UserController{userService: userService}
+}
+
+func (controller *UserController) CreateUserAction(c *gin.Context) {
 
 	var req struct {
 		FirstName string `json:"firstName"`
@@ -19,12 +27,12 @@ func CreateUserAction(c *gin.Context) {
 		return
 	}
 
-	user, err := UserService.CreateUser(User{
+	user, err := controller.userService.CreateUser(User{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
 		Password:  req.Password,
-	}, UserRepository.Create)
+	})
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -34,7 +42,7 @@ func CreateUserAction(c *gin.Context) {
 	c.JSON(http.StatusCreated, user)
 }
 
-func FindUserByIdAction(c *gin.Context) {
+func (controller *UserController) FindUserByIdAction(c *gin.Context) {
 
 	id, err := parseStringToInt64(c.Param("id"))
 	if err != nil {
@@ -42,7 +50,7 @@ func FindUserByIdAction(c *gin.Context) {
 		return
 	}
 
-	user, err := UserService.FindUserById(id, UserRepository.FindById)
+	user, err := controller.userService.FindUserById(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -52,7 +60,7 @@ func FindUserByIdAction(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func UpdateUserAction(c *gin.Context) {
+func (controller *UserController) UpdateUserAction(c *gin.Context) {
 
 	id, err := parseStringToInt64(c.Param("id"))
 	if err != nil {
@@ -71,13 +79,13 @@ func UpdateUserAction(c *gin.Context) {
 		return
 	}
 
-	user, err := UserService.UpdateUser(User{
+	user, err := controller.userService.UpdateUser(User{
 		ID:        id,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
 		Email:     req.Email,
 		Password:  req.Password,
-	}, UserRepository.Update)
+	})
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -87,7 +95,7 @@ func UpdateUserAction(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func DeleteUserAction(c *gin.Context) {
+func (controller *UserController) DeleteUserAction(c *gin.Context) {
 
 	id, err := parseStringToInt64(c.Param("id"))
 	if err != nil {
@@ -95,7 +103,7 @@ func DeleteUserAction(c *gin.Context) {
 		return
 	}
 
-	if err := UserService.DeleteUserById(id, UserRepository.DeleteById); err != nil {
+	if err := controller.userService.DeleteUserById(id); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
